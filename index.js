@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const data = require("./db.json");
 const app = express();
@@ -7,6 +8,8 @@ const app = express();
 const { users, posts } = data;
 
 app.use(bodyParser.json());
+
+app.use(cors());
 
 app.get("/", function (req, res) {
   res.send("Hello World");
@@ -105,7 +108,7 @@ app.get("/post/:id", auth, function (req, res) {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`localhost:${PORT} is running....`);
