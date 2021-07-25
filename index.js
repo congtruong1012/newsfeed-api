@@ -12,14 +12,30 @@ app.get("/", function (req, res) {
   res.send("Hello World");
 });
 
-app.get("/user", function (req, res) {
+const auth = (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    if (!token) {
+      return res.json({ code: 401, data: null });
+    }
+    jwt.verify(token, "secret", (err, user) => {
+      if (err) res.json({ code: 401, data: null });
+      req.user = user;
+      next();
+    });
+  } catch (err) {
+    res.json({ data: null, code: 500 });
+  }
+};
+
+app.get("/user", auth, function (req, res) {
   res.json({
     data: users,
     code: 200,
   });
 });
 
-app.get("/user/:id", function (req, res) {
+app.get("/user/:id", auth, function (req, res) {
   const { id } = req.params;
   const user = users.find((item) => item.id === id);
   if (!user) {
@@ -52,7 +68,7 @@ app.post("/login", function (req, res) {
       id,
     },
     "secret",
-    { expiresIn: 60 * 5 }
+    { expiresIn: 60 * 60 }
   );
   return res.json({
     data: { id, ...rest, token },
@@ -60,7 +76,7 @@ app.post("/login", function (req, res) {
   });
 });
 
-app.get("/user/:id/post", function (req, res) {
+app.get("/user/:id/post", auth, function (req, res) {
   const { id } = req.params;
   const list = posts.filter((item) => item.pn100 === id);
   res.json({
@@ -69,7 +85,7 @@ app.get("/user/:id/post", function (req, res) {
   });
 });
 
-app.get("/post/:id", function (req, res) {
+app.get("/post/:id", auth, function (req, res) {
   const { id } = req.params;
   const post = posts.find((item) => item.id === id);
   if (!post) {
@@ -78,9 +94,14 @@ app.get("/post/:id", function (req, res) {
       code: 204,
     });
   }
-  res.json({
-    data: post,
-    code: 200,
+  if (post.pn100 === req.user.id)
+    return res.json({
+      data: post,
+      code: 200,
+    });
+  return res.json({
+    data: null,
+    code: 403,
   });
 });
 
