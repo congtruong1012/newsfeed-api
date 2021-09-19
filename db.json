@@ -1002,5 +1002,31 @@
       "approved": "W",
       "type": 0
     }
+  ],
+  "cities": [
+    {
+      "name": "Hà Nội",
+      "value": "hn"
+    },
+    {
+      "name": "Hải Phòng",
+      "value": "hp"
+    },
+    {
+      "name": "Thừa Thiên Huế",
+      "value": "h"
+    },
+    {
+      "name": "Đà Nẵng",
+      "value": "dn"
+    },
+    {
+      "name": "Hồ Chí Minh",
+      "value": "hcm"
+    },
+    {
+      "name": "Cần Thở",
+      "value": "ct"
+    }
   ]
 }
