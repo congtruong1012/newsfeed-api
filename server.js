@@ -4,6 +4,7 @@ const router = jsonServer.router('db.json');
 const middlewares = jsonServer.defaults();
 const jwt = require('jsonwebtoken');
 const queryString = require('query-string');
+const db = require('./db.json');
 require('dotenv').config();
 server.use(jsonServer.bodyParser);
 
@@ -18,11 +19,21 @@ server.post('/login', (req, res) => {
   if (username !== 'congtruong' || password !== '4297f44b13955235245b2497399d7a93') {
     return res.status(401).json({ data: null, error: 'Unauthorized' });
   }
-  console.log('process.env.SECRET', process.env.SECRET);
   const payload = { id: username };
   const token = jwt.sign(payload, process.env.SECRET, { expiresIn: 60 * 60 });
-  console.log({ data: token, error: '' });
   return res.jsonp({ data: token, error: '' });
+});
+
+server.get('/dashboard', (req, res) => {
+  const posts = db.posts;
+  const data = posts.reduce((cur, item, index) => {
+    cur.post = index + 1;
+    cur.like = item.like + cur.like || 0;
+    cur.comment = item.comment + cur.comment || 0;
+    cur.share = item.share + cur.share || 0;
+    return cur;
+  }, {});
+  return res.jsonp({ data, error: '' });
 });
 
 server.use((req, res, next) => {
