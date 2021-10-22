@@ -74,11 +74,6 @@ server.use((req, res, next) => {
   }
 });
 
-server.use(router);
-server.listen(3000, () => {
-  console.log('JSON Server is running');
-});
-
 // To handle POST, PUT and PATCH you need to use a body-parser
 // You can use the one used by JSON Server
 server.use((req, res, next) => {
@@ -113,5 +108,5 @@ const PORT = process.env.PORT || 5000;
 // Use default router
 server.use(router);
 server.listen(PORT, () => {
-  console.log('JSON Server is running');
+  console.log(`JSON Server is running in port ${PORT}`);
 });
