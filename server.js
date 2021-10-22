@@ -11,6 +11,8 @@ server.use(jsonServer.bodyParser);
 // Set default middlewares (logger, static, cors and no-cache)
 server.use(middlewares);
 
+const refreshTokens = {};
+
 // Add custom routes before JSON Server router
 server.post('/login', (req, res) => {
   const { username, password } = req.body;
@@ -19,9 +21,29 @@ server.post('/login', (req, res) => {
   if (username !== 'congtruong' || password !== '4297f44b13955235245b2497399d7a93') {
     return res.status(401).json({ data: null, error: 'Unauthorized' });
   }
-  const payload = { id: username };
-  const token = jwt.sign(payload, process.env.SECRET, { expiresIn: 60 * 60 });
-  return res.jsonp({ data: token, error: '' });
+  const payload = { username };
+  const token = jwt.sign(payload, process.env.TOKEN, { expiresIn: 60 * 60 });
+  const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN, { expiresIn: 24 * 60 * 60 });
+  refreshTokens[refreshToken] = payload;
+  return res.jsonp({ data: { token, refreshToken }, error: '' });
+});
+
+server.post('/token', (req, res) => {
+  const { refreshToken } = req.body;
+  if (refreshToken && refreshToken in refreshTokens) {
+    try {
+      const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
+      if (decoded) {
+        const payload = refreshTokens[refreshToken];
+        const token = jwt.sign(payload, process.env.TOKEN, { expiresIn: 60 * 60 });
+        return res.jsonp({ data: { token }, error: '' });
+      }
+    } catch (error) {
+      return res.status(403).jsonp({ data: null, error: 'Forbidden' });
+    }
+  } else {
+    return res.status(400).json({ data: null, error: 'Bad Request' });
+  }
 });
 
 server.get('/dashboard', (req, res) => {
@@ -37,7 +59,7 @@ server.get('/dashboard', (req, res) => {
 });
 
 server.use((req, res, next) => {
-  if (req.path === '/login' && req.method === 'POST') next();
+  if (['/token', '/login'].includes(req.path) && req.method === 'POST') next();
   const authorization = req.headers['authorization'];
   if (!authorization) return res.status(401).json({ data: null, error: 'Unauthorized' });
   const token = authorization.split(' ')[1];
